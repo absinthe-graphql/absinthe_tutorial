@@ -1,4 +1,4 @@
-defmodule AbsintheExample.Schema.Types do
+defmodule Blog.Schema.Types do
   use Absinthe.Type.Definitions
   alias Absinthe.Type
 

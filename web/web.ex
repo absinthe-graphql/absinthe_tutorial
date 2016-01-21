@@ -1,12 +1,12 @@
-defmodule AbsintheExample.Web do
+defmodule Blog.Web do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.
 
   This can be used in your application as:
 
-      use AbsintheExample.Web, :controller
-      use AbsintheExample.Web, :view
+      use Blog.Web, :controller
+      use Blog.Web, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -30,12 +30,12 @@ defmodule AbsintheExample.Web do
     quote do
       use Phoenix.Controller
 
-      alias AbsintheExample.Repo
+      alias Blog.Repo
       import Ecto
       import Ecto.Query, only: [from: 1, from: 2]
 
-      import AbsintheExample.Router.Helpers
-      import AbsintheExample.Gettext
+      import Blog.Router.Helpers
+      import Blog.Gettext
     end
   end
 
@@ -46,9 +46,9 @@ defmodule AbsintheExample.Web do
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
 
-      import AbsintheExample.Router.Helpers
-      import AbsintheExample.ErrorHelpers
-      import AbsintheExample.Gettext
+      import Blog.Router.Helpers
+      import Blog.ErrorHelpers
+      import Blog.Gettext
     end
   end
 
@@ -62,10 +62,10 @@ defmodule AbsintheExample.Web do
     quote do
       use Phoenix.Channel
 
-      alias AbsintheExample.Repo
+      alias Blog.Repo
       import Ecto
       import Ecto.Query, only: [from: 1, from: 2]
-      import AbsintheExample.Gettext
+      import Blog.Gettext
     end
   end
 

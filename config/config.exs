@@ -6,12 +6,12 @@
 use Mix.Config
 
 # Configures the endpoint
-config :absinthe_example, AbsintheExample.Endpoint,
+config :blog, Blog.Endpoint,
   url: [host: "localhost"],
   root: Path.dirname(__DIR__),
   secret_key_base: "BLccQuJ1d3vKkB6dsLReE9GiTK6S1T6fp3wG/JVGeEuJiLgDFflq96zvmigYW61L",
   render_errors: [accepts: ~w(json)],
-  pubsub: [name: AbsintheExample.PubSub,
+  pubsub: [name: Blog.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger

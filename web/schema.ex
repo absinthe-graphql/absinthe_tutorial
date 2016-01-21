@@ -1,5 +1,5 @@
-defmodule AbsintheExample.Schema do
-  use Absinthe.Schema, type_modules: [AbsintheExample.Schema.Types]
+defmodule Blog.Schema do
+  use Absinthe.Schema, type_modules: [Blog.Schema.Types]
   alias Absinthe.Type
 
   def query do

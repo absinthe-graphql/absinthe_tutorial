@@ -1,10 +1,10 @@
-defmodule AbsintheExample.Endpoint do
-  use Phoenix.Endpoint, otp_app: :absinthe_example
+defmodule Blog.Endpoint do
+  use Phoenix.Endpoint, otp_app: :blog
 
-  socket "/socket", AbsintheExample.UserSocket
+  socket "/socket", Blog.UserSocket
 
   plug Plug.Static,
-    at: "/", from: :absinthe_example, gzip: false,
+    at: "/", from: :blog, gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
 
   if code_reloading? do
@@ -22,5 +22,5 @@ defmodule AbsintheExample.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
 
-  plug AbsintheExample.Router
+  plug Blog.Router
 end

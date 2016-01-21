@@ -1,6 +1,6 @@
 ExUnit.start
 
-Mix.Task.run "ecto.create", ~w(-r AbsintheExample.Repo --quiet)
-Mix.Task.run "ecto.migrate", ~w(-r AbsintheExample.Repo --quiet)
-Ecto.Adapters.SQL.begin_test_transaction(AbsintheExample.Repo)
+Mix.Task.run "ecto.create", ~w(-r Blog.Repo --quiet)
+Mix.Task.run "ecto.migrate", ~w(-r Blog.Repo --quiet)
+Ecto.Adapters.SQL.begin_test_transaction(Blog.Repo)
 

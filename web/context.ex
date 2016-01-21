@@ -1,4 +1,4 @@
-defmodule AbsintheExample.Context do
+defmodule Blog.Context do
   @moduledoc """
   This module is just a regular plug that can look at the conn struct and build
   the appropriate absinthe context.

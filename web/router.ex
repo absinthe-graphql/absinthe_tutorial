@@ -1,13 +1,13 @@
-defmodule AbsintheExample.Router do
+defmodule Blog.Router do
   use Phoenix.Router
 
   pipeline :graphql do
-    plug AbsintheExample.Context
+    plug Blog.Context
   end
 
   scope "/api" do
     pipe_through :graphql
 
-    forward "/", AbsinthePlug, schema: AbsintheExample.Web.Schema
+    forward "/", AbsinthePlug, schema: Blog.Web.Schema
   end
 end

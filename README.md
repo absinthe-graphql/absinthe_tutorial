@@ -214,7 +214,9 @@ def mutation do
     )
   }
 end
+```
 
+```elixir
 # in web/resolver/post.ex
 def create(_obj, args, _exe) do
   %Post{}
@@ -288,25 +290,22 @@ def mutation do
 end
 ```
 
-user(id: "1") {
-  name
-  posts {
-    title
-  }
-}
-
 When `posted_at` is passed as an argument, the parse function we defined in our `:time` type will be called and it will automatically arrive in our resolver as a `Timex.DateTime` struct! Similarly, when we return the `posted_at` field the `Timex.DateTime` struct will be serialized back to a string for easy JSON representation.
 
 ## Comments
 
 What is a blog without insightful and constructive commentary? Let's give the people a voice!
+
+There's a twist here though. In the spirit of fostering quality online dialog, we're going to allow comments both directly on the post, as well as on other comments. For mutations we'll want to accept both post and comment arguments. For querying a comment, we're going to need some fancier GraphQL features. Here are the documents we want to support:
 ```
 mutation CreateComment {
   comment(post: {id: "1"})
+}
+mutation CreateReply {
   comment(comment: {id: "1"})
 }
 
-{
+query UserComments {
   user(id: "1") {
     comments {
       subject {
@@ -325,3 +324,5 @@ mutation CreateComment {
   }
 }
 ```
+
+Each comment has a subject. That subject can be either a post or another comment.
