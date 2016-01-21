@@ -1,4 +1,4 @@
-# AbsintheExample
+# Absinthe Example
 
 Let's build a (basic) GraphQL Blog Server with Absinthe.
 
@@ -30,7 +30,7 @@ To do this we're going to need a schema. Let's create some basic types for our s
 
 ```elixir
 # web/schema/types.ex
-defmodule AbsintheExample.Schema.Types do
+defmodule Blog.Schema.Types do
   use Absinthe.Type.Definitions
   alias Absinthe.Type
 
@@ -49,16 +49,16 @@ end
 
 You'll notice we use the `fields()` function to define the fields on our Post object. This is just a convenience function that fills out a bit of GraphQL boilerplate for each of the fields we define. See [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html#fields/1) for more information.
 
-If you're what the type `:id` is used by the `:id` field, see the [GraphQL spec](https://facebook.github.io/graphql/#sec-ID). In our case it's our regular Ecto id, but always serialized as a string.
+If you're curious what the type `:id` is used by the `:id` field, see the [GraphQL spec](https://facebook.github.io/graphql/#sec-ID). In our case it's our regular Ecto id, but always serialized as a string.
 
 With our type completed we can now write a basic schema that will let us query a set of posts.
 
 ```elixir
 # web/schema.ex
-defmodule AbsintheExample.Schema do
-  use Absinthe.Schema, type_modules: [AbsintheExample.Schema.Types]
+defmodule Blog.Schema do
+  use Absinthe.Schema, type_modules: [Blog.Schema.Types]
   alias Absinthe.Type
-  alias AbsintheExample.Resolver
+  alias Blog.Resolver
 
   def query do
     %Type.Object{
@@ -73,25 +73,25 @@ defmodule AbsintheExample.Schema do
 end
 
 # web/resolver/post.ex
-defmodule AbsintheExample.Resolver.Post do
+defmodule Blog.Resolver.Post do
   def all(_obj, _args, _exe) do
-    {:ok, AbsintheExample.Repo.all(Post)}
+    {:ok, Blog.Repo.all(Post)}
   end
 end
 ```
 
-Queries are defined as fields inside the GraphQL object returned by our `query` function. We created a posts query that has a type `list_of(:post)` and is resolved by our `AbsintheExample.Resolver.Post.all` function. Later we'll get into what the arguments to resolver functions are; don't worry about it for now. The resolver function can be anything you like that takes the requisite 3 arguments. By convention we recommend organizing your resolvers under `web/resolver/foo.ex`
+Queries are defined as fields inside the GraphQL object returned by our `query` function. We created a posts query that has a type `list_of(:post)` and is resolved by our `Blog.Resolver.Post.all` function. Later we'll get into what the arguments to resolver functions are; don't worry about it for now. The resolver function can be anything you like that takes the requisite 3 arguments. By convention we recommend organizing your resolvers under `web/resolver/foo.ex`
 
 By default, the atom name of the type (in this case `:post`) is determined by the name of the function which defines it. For more information on type definitions see [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html).
 
 The last thing we need to do is configure our phoenix router to use our newly created schema.
 
 ```elixir
-defmodule AbsintheExample.Web.Router do
+defmodule Blog.Web.Router do
   use Phoenix.Router
 
   forward "/", Absinthe.Plug,
-    schema: AbsintheExample.Schema
+    schema: Blog.Schema
 end
 ```
 
@@ -126,7 +126,8 @@ def user do
     fields: fields(
       id: [type: :id],
       name: [type: :string],
-      email: [type: :string]
+      email: [type: :string],
+      posts: [type: :post]
     )
   }
 end
@@ -137,6 +138,7 @@ def post do
     fields: fields(
       title: [type: :string],
       body: [type: :string],
+      author: [type: :user],
     )
   }
 end
@@ -165,9 +167,9 @@ In GraphQL you define your arguments ahead of time just like your return values.
 
 ```elixir
 # web/resolver/user.ex
-defmodule AbsintheExample.Resolver.User do
+defmodule Blog.Resolver.User do
   def find(_obj, %{id: id}, _exe) do
-    case AbsintheExample.Repo.get(User, id) do
+    case Blog.Repo.get(User, id) do
       nil  -> {:error, "User id #{id} not found"}
       user -> {:ok, user}
     end
@@ -217,7 +219,7 @@ end
 def create(_obj, args, _exe) do
   %Post{}
   |> Post.changeset(args)
-  |> AbsintheExample.Repo.insert
+  |> Blog.Repo.insert
 end
 ```
 
@@ -236,7 +238,7 @@ mutation CreatePost {
 }
 ```
 
-Here we have a small conundrum. While GraphQL strings have an obvious counterpart in elixir strings, times in Elixir are often represented by something like a Timex struct. We could handle this in our resolvers, by manually serializing or deserializing the time data. Fortunately however GraphQL provides a better way: [Scalar](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html) types.
+Here we have a small conundrum. While GraphQL strings have an obvious counterpart in elixir strings, time in Elixir is often represented by something like a Timex struct. We could handle this in our resolvers by manually serializing or deserializing the time data. Fortunately however GraphQL provides a better way via allowing us to build additional [Scalar](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html) types.
 
 Let's define our time type:
 ```elixir
@@ -286,17 +288,39 @@ def mutation do
 end
 ```
 
+user(id: "1") {
+  name
+  posts {
+    title
+  }
+}
+
 When `posted_at` is passed as an argument, the parse function we defined in our `:time` type will be called and it will automatically arrive in our resolver as a `Timex.DateTime` struct! Similarly, when we return the `posted_at` field the `Timex.DateTime` struct will be serialized back to a string for easy JSON representation.
 
-## Associations
+## Comments
 
-Ideally we would like to be able to return all posts for a user.
+What is a blog without insightful and constructive commentary? Let's give the people a voice!
 ```
+mutation CreateComment {
+  comment(post: {id: "1"})
+  comment(comment: {id: "1"})
+}
+
 {
   user(id: "1") {
-    posts {
-      title
-      body
+    comments {
+      subject {
+        id
+        ... on Post {
+          title
+        }
+        ... on Comment {
+          body
+          author {
+            name
+          }
+        }
+      }
     }
   }
 }
