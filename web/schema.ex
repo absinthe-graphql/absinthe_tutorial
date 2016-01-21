@@ -23,12 +23,12 @@ defmodule AbsintheExample.Schema do
   def mutation do
     %Type.Object{
       fields: fields(
-        create_post: [
+        post: [
           type: :post,
           args: args(
-            title: [type: :string],
-            body: [type: :string],
-            posted_at: [type: :string],
+            title: [type: non_null(:string)],
+            body: [type: non_null(:string)],
+            posted_at: [type: non_null(:time)],
           ),
           resolve: &Resolver.Post.create/3,
         ]

@@ -2,17 +2,20 @@
 
 Let's build a (basic) GraphQL Blog Server with Absinthe.
 
-# Table of Contents
+This tutorial does assume a (super) basic knowledge of what a GraphQL query is. It DOES NOT assume any knowledge of Absinthe. For a basic sense of how GraphQL works, see: http://facebook.github.io/graphql/#sec-Overview
+
+## Table of Contents
 
 1. [Our First Query](#our-first-query)
 2. [Using Our Query](#using-our-query)
 3. [Query Arguments](#query-arguments)
 4. [Mutations](#mutations)
 5. [Scalar Types](#scalar-types)
+6. [Associations](#associations)
 
 ## Our First Query
 
-The first thing our viewers want are a list of our blog posts, so that's what we're going to give them. Here's the query we want to support
+The first thing our viewers want is a list of our blog posts, so that's what we're going to give them. Here's the query we want to support
 
 ```
 {
@@ -23,7 +26,7 @@ The first thing our viewers want are a list of our blog posts, so that's what we
 }
 ```
 
-To do this we're going to need a schema. Let's create some basic types for our schema, starting with a Post. GraphQL has several fundamental on top of which all of our types will be built. The [Object](http://hexdocs.pm/absinthe/Absinthe.Type.Object.html) type is the right one to use when representing a set of key value pairs.
+To do this we're going to need a schema. Let's create some basic types for our schema, starting with a Post. GraphQL has several fundamental types on top of which all of our types will be built. The [Object](http://hexdocs.pm/absinthe/Absinthe.Type.Object.html) type is the right one to use when representing a set of key value pairs.
 
 ```elixir
 # web/schema/types.ex
@@ -44,9 +47,9 @@ defmodule AbsintheExample.Schema.Types do
 end
 ```
 
-You'll notice we use the `fields()` function to define the fields on our Post object. This is just a convenience function that fills out a bit of GraphQL boilerplate for each of the fields we define. See [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html#fields/1) for more information. That module also contains the documentation for several other convenience functions we will use in this example.
+You'll notice we use the `fields()` function to define the fields on our Post object. This is just a convenience function that fills out a bit of GraphQL boilerplate for each of the fields we define. See [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html#fields/1) for more information.
 
-You may be wondering what the type `:id` is used by the `:id` field. Read more in the "Built-In Scalars" section [here](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html)
+If you're what the type `:id` is used by the `:id` field, see the [GraphQL spec](https://facebook.github.io/graphql/#sec-ID). In our case it's our regular Ecto id, but always serialized as a string.
 
 With our type completed we can now write a basic schema that will let us query a set of posts.
 
@@ -77,7 +80,7 @@ defmodule AbsintheExample.Resolver.Post do
 end
 ```
 
-Queries are defined as fields inside the GraphQL object returned by our `query` function. We created a posts query that has a type `list_of(:post)` and is resolved by our `AbsintheExample.Resolver.Post.all` function. Later we'll get into what the arguments to resolver functions are, but don't worry about it for now. The resolver function can be anything you like that takes the requisite 3 arguments. By convention we recommend organizing your resolvers under `web/resolvers/`
+Queries are defined as fields inside the GraphQL object returned by our `query` function. We created a posts query that has a type `list_of(:post)` and is resolved by our `AbsintheExample.Resolver.Post.all` function. Later we'll get into what the arguments to resolver functions are; don't worry about it for now. The resolver function can be anything you like that takes the requisite 3 arguments. By convention we recommend organizing your resolvers under `web/resolver/foo.ex`
 
 By default, the atom name of the type (in this case `:post`) is determined by the name of the function which defines it. For more information on type definitions see [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html).
 
@@ -98,11 +101,11 @@ Using Absinthe.Plug in your router ensures that your schema is type checked at c
 
 ## Resolution Overview
 
-# TODO
+- TODO
 
 ## Query Arguments
 
-Our blog also needs users, and the ability to look up users by id. Here's the query we want to support:
+Our blog needs users, and the ability to look up users by id. Here's the query we want to support:
 ```
 {
   user(id: "1") {
@@ -124,7 +127,6 @@ def user do
       id: [type: :id],
       name: [type: :string],
       email: [type: :string]
-      posts: [type: list_of(:posts)]
     )
   }
 end
@@ -135,7 +137,6 @@ def post do
     fields: fields(
       title: [type: :string],
       body: [type: :string],
-      author: [type: :user]
     )
   }
 end
@@ -286,3 +287,17 @@ end
 ```
 
 When `posted_at` is passed as an argument, the parse function we defined in our `:time` type will be called and it will automatically arrive in our resolver as a `Timex.DateTime` struct! Similarly, when we return the `posted_at` field the `Timex.DateTime` struct will be serialized back to a string for easy JSON representation.
+
+## Associations
+
+Ideally we would like to be able to return all posts for a user.
+```
+{
+  user(id: "1") {
+    posts {
+      title
+      body
+    }
+  }
+}
+```

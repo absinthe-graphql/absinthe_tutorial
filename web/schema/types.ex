@@ -21,9 +21,18 @@ defmodule AbsintheExample.Schema.Types do
         id: [type: :id],
         title: [type: :string],
         body: [type: :string],
-        posted_at: [type: :string],
+        posted_at: [type: :time],
         author: [type: :user]
       )
+    }
+  end
+
+  @absinthe :type
+  def time do
+    %Type.Scalar{
+      description: "ISOz time",
+      parse: &Timex.DateFormat.parse(&1, "{ISOz}"),
+      serialize: &Timex.DateFormat.format!(&1, "{ISOz}")
     }
   end
 end
