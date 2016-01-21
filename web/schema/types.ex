@@ -18,6 +18,7 @@ defmodule AbsintheExample.Schema.Types do
   def post do
     %Type.Object{
       fields: fields(
+        id: [type: :id],
         title: [type: :string],
         body: [type: :string],
         posted_at: [type: :string],

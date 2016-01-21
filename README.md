@@ -8,8 +8,9 @@ Let's build a (basic) GraphQL Blog Server with Absinthe.
 2. [Using Our Query](#using-our-query)
 3. [Query Arguments](#query-arguments)
 4. [Mutations](#mutations)
+5. [Scalar Types](#scalar-types)
 
-## [Our First Query](#our-first-query)
+## Our First Query
 
 The first thing our viewers want are a list of our blog posts, so that's what we're going to give them. Here's the query we want to support
 
@@ -18,7 +19,6 @@ The first thing our viewers want are a list of our blog posts, so that's what we
   posts {
     title
     body
-    posted_at
   }
 }
 ```
@@ -35,9 +35,9 @@ defmodule AbsintheExample.Schema.Types do
   def post do
     %Type.Object{
       fields: fields(
+        id: [type: :id],
         title: [type: :string],
-        body: [type: :string],
-        posted_at: [type: :string]
+        body: [type: :string]
       )
     }
   end
@@ -45,6 +45,8 @@ end
 ```
 
 You'll notice we use the `fields()` function to define the fields on our Post object. This is just a convenience function that fills out a bit of GraphQL boilerplate for each of the fields we define. See [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html#fields/1) for more information. That module also contains the documentation for several other convenience functions we will use in this example.
+
+You may be wondering what the type `:id` is used by the `:id` field. Read more in the "Built-In Scalars" section [here](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html)
 
 With our type completed we can now write a basic schema that will let us query a set of posts.
 
@@ -69,7 +71,7 @@ end
 
 # web/resolver/post.ex
 defmodule AbsintheExample.Resolver.Post do
-  def all(_, _, _) do
+  def all(_obj, _args, _exe) do
     {:ok, AbsintheExample.Repo.all(Post)}
   end
 end
@@ -77,7 +79,7 @@ end
 
 Queries are defined as fields inside the GraphQL object returned by our `query` function. We created a posts query that has a type `list_of(:post)` and is resolved by our `AbsintheExample.Resolver.Post.all` function. Later we'll get into what the arguments to resolver functions are, but don't worry about it for now. The resolver function can be anything you like that takes the requisite 3 arguments. By convention we recommend organizing your resolvers under `web/resolvers/`
 
-These types are checked at compile time when you use `Absinthe.Plug` in your router. This means that if you misspell a type and do `list_of(:pots)` you'll be notified that the type you reference in your schema doesn't exist.
+By default, the atom name of the type (in this case `:post`) is determined by the name of the function which defines it. For more information on type definitions see [Absinthe.Type.Definitions](http://hexdocs.pm/absinthe/Absinthe.Type.Definitions.html).
 
 The last thing we need to do is configure our phoenix router to use our newly created schema.
 
@@ -92,11 +94,13 @@ end
 
 That's it! We're running GraphQL.
 
+Using Absinthe.Plug in your router ensures that your schema is type checked at compile time. This means that if you misspell a type and do `list_of(:pots)` you'll be notified that the type you reference in your schema doesn't exist.
+
 ## Resolution Overview
 
 # TODO
 
-## [Query Arguments](#query-arguments)
+## Query Arguments
 
 Our blog also needs users, and the ability to look up users by id. Here's the query we want to support:
 ```
@@ -131,7 +135,6 @@ def post do
     fields: fields(
       title: [type: :string],
       body: [type: :string],
-      posted_at: [type: :string],
       author: [type: :user]
     )
   }
@@ -162,7 +165,7 @@ In GraphQL you define your arguments ahead of time just like your return values.
 ```elixir
 # web/resolver/user.ex
 defmodule AbsintheExample.Resolver.User do
-  def find(_, %{id: id}, _) do
+  def find(_obj, %{id: id}, _exe) do
     case AbsintheExample.Repo.get(User, id) do
       nil  -> {:error, "User id #{id} not found"}
       user -> {:ok, user}
@@ -171,31 +174,70 @@ defmodule AbsintheExample.Resolver.User do
 end
 ```
 
-The second argument to every resolve function contains the graphql arguments of the query / mutation. Our schema marks the id argument as `non_null`, so we can be certain we will receive it and just pattern match directly. If the id is left out of the query, Absinthe will return an informative error to the user, and the resolve function will not be called.
+The second argument to every resolve function contains the GraphQL arguments of the query / mutation. Our schema marks the id argument as `non_null`, so we can be certain we will receive it and just pattern match directly. If the id is left out of the query, Absinthe will return an informative error to the user, and the resolve function will not be called.
 
 Note also that the id parameter is an atom, and not a binary like ordinary phoenix parameters. Absinthe knows what arguments will be used ahead of time, and will cull any extraneous arguments given to a query. This means that all arguments can be supplied to the resolve functions with atom keys.
 
 Finally you'll see that we need to handle the possibility that the query, while valid from GraphQL's perspective, may still ask for a user that does not exist.
 
+## Mutations
 
+A blog is no good without new content. We want to support a mutation to create a blog post:
 
+```
+mutation CreatePost {
+  post(title: "Second", body: "We're off to a great start!") {
+    id
+  }
+}
+```
 
+Fortunately for us we don't need to make any changes to our types file. We do however need a new function in our schema and resolver
 
+```elixir
+# in web/schema.ex
+def mutation do
+  %Type.Object{
+    fields: fields(
+      post: [
+        type: :post,
+        args: args(
+          title: [type: non_null(:string)],
+          body: [type: non_null(:string)],
+          posted_at: [type: non_null(:string)],
+        ),
+        resolve: &Resolver.Post.create/3,
+      ]
+    )
+  }
+end
 
+# in web/resolver/post.ex
+def create(_obj, args, _exe) do
+  %Post{}
+  |> Post.changeset(args)
+  |> AbsintheExample.Repo.insert
+end
+```
 
+Simple enough!
 
+## Scalar Types
 
+It would be nice if our blog posts had a `posted_at` time. This would be something we could both send as part of our CreatePost mutation, and also retrieve in a query.
 
+```
+mutation CreatePost {
+  post(title: "Second", body: "We're off to a great start!", postedAt: "2016-01-19T16:07:37Z") {
+    id
+    postedAt
+  }
+}
+```
 
+Here we have a small conundrum. While GraphQL strings have an obvious counterpart in elixir strings, times in Elixir are often represented by something like a Timex struct. We could handle this in our resolvers, by manually serializing or deserializing the time data. Fortunately however GraphQL provides a better way: [Scalar](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html) types.
 
-
-
-
-
-
-
-Right now we have Instead of just representing this as a string, we can create a new [Scalar](http://hexdocs.pm/absinthe/Absinthe.Type.Scalar.html) type that will automatically handle serializing and unserializing the time with our preferred time handling library.
-
+Let's define our time type:
 ```elixir
 # in web/schema/types.ex
 
@@ -224,4 +266,23 @@ def post do
 end
 ```
 
-By default, the atom name of the type (in this case `:time` or `:post`) is determined by the function used to define it. You can give it
+And our mutation in the schema should look like
+```elixir
+def mutation do
+  %Type.Object{
+    fields: fields(
+      post: [
+        type: :post,
+        args: args(
+          title: [type: non_null(:string)],
+          body: [type: non_null(:string)],
+          posted_at: [type: non_null(:time)],
+        ),
+        resolve: &Resolver.Post.create/3,
+      ]
+    )
+  }
+end
+```
+
+When `posted_at` is passed as an argument, the parse function we defined in our `:time` type will be called and it will automatically arrive in our resolver as a `Timex.DateTime` struct! Similarly, when we return the `posted_at` field the `Timex.DateTime` struct will be serialized back to a string for easy JSON representation.

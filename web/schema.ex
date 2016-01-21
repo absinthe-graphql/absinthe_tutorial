@@ -19,4 +19,20 @@ defmodule AbsintheExample.Schema do
       )
     }
   end
+
+  def mutation do
+    %Type.Object{
+      fields: fields(
+        create_post: [
+          type: :post,
+          args: args(
+            title: [type: :string],
+            body: [type: :string],
+            posted_at: [type: :string],
+          ),
+          resolve: &Resolver.Post.create/3,
+        ]
+      )
+    }
+  end
 end
