@@ -32,7 +32,7 @@ defmodule Blog.Mixfile do
     [{:phoenix, "~> 1.1.1"},
      {:phoenix_ecto, "~> 2.0"},
      {:postgrex, ">= 0.0.0"},
-     {:absinthe_plug, "~> 0.1"},
+     {:absinthe_plug, "~> 1.0.0"},
      {:cowboy, "~> 1.0"}]
   end
 

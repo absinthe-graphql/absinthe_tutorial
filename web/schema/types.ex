@@ -1,38 +1,24 @@
 defmodule Blog.Schema.Types do
-  use Absinthe.Type.Definitions
-  alias Absinthe.Type
+  use Absinthe.Schema.Notation
 
-  @absinthe :type
-  def user do
-    %Type.Object{
-      fields: fields(
-        id: [type: :id],
-        name: [type: :string],
-        email: [type: :string]
-        posts: [type: list_of(:posts)]
-      )
-    }
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :email, :string
+    field :posts, list_of(:post)
   end
 
-  @absinthe :type
-  def post do
-    %Type.Object{
-      fields: fields(
-        id: [type: :id],
-        title: [type: :string],
-        body: [type: :string],
-        posted_at: [type: :time],
-        author: [type: :user]
-      )
-    }
+  object :post do
+    field :id, :id
+    field :title, :string
+    field :body, :string
+    field :posted_at, :time
+    field :author, :user
   end
 
-  @absinthe :type
-  def time do
-    %Type.Scalar{
-      description: "ISOz time",
-      parse: &Timex.DateFormat.parse(&1, "{ISOz}"),
-      serialize: &Timex.DateFormat.format!(&1, "{ISOz}")
-    }
+  scalar :time do
+    description "ISOz time",
+    parse &Timex.DateFormat.parse(&1, "{ISOz}")
+    serialize &Timex.DateFormat.format!(&1, "{ISOz}")
   end
 end
