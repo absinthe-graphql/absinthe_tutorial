@@ -18,7 +18,7 @@ defmodule Blog.Mixfile do
   def application do
     [mod: {Blog, []},
      applications: [:phoenix, :cowboy, :logger,
-                    :phoenix_ecto, :postgrex]]
+                    :phoenix_ecto, :postgrex, :absinthe_plug]]
   end
 
   # Specifies which paths to compile per environment.

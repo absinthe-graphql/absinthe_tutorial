@@ -1,6 +1,6 @@
 # Absinthe Example
 
-For a tutorial on building this example, see: `URL`
+See [The Tutorial](http://absinthe-graphql.org/tutorial/) for steps to build this.
 
 ## License
 
