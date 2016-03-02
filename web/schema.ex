@@ -22,5 +22,12 @@ defmodule Blog.Schema do
 
       resolve &Resolver.Post.create/2
     end
+
+    field :user, :user do
+      field :contact, non_null(:contact_input)
+      field :password, :string
+
+      resolve &Resolver.User.create/2
+    end
   end
 end
