@@ -1,8 +1,6 @@
 defmodule Blog.Endpoint do
   use Phoenix.Endpoint, otp_app: :blog
 
-  socket "/socket", Blog.UserSocket
-
   plug Plug.Static,
     at: "/", from: :blog, gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
