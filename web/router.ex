@@ -8,6 +8,6 @@ defmodule Blog.Router do
   scope "/api" do
     pipe_through :graphql
 
-    forward "/", AbsinthePlug, schema: Blog.Web.Schema
+    forward "/", Absinthe.Plug, schema: Blog.Schema
   end
 end
