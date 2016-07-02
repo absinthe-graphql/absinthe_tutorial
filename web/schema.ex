@@ -1,6 +1,8 @@
 defmodule Blog.Schema do
   use Absinthe.Schema
 
+  alias Blog.Resolver
+  
   import_types Blog.Schema.Types
 
   query do
