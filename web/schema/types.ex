@@ -20,7 +20,7 @@ defmodule Blog.Schema.Types do
   end
 
   object :contact do
-    field :type, :contact_type
+    field :type, :string
     field :value, :string
   end
 
@@ -31,11 +31,11 @@ defmodule Blog.Schema.Types do
   end
 
   input_object :contact_input do
-    field :type, non_null(:contact_type)
+    field :type, non_null(:string)
     field :value, non_null(:string)
   end
 
-  enum :contact_type do
-    values ~w(phone email)a
-  end
+  # enum :contact_type do
+  #   values ~w(phone email)a
+  # end
 end
