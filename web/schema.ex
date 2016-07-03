@@ -2,7 +2,7 @@ defmodule Blog.Schema do
   use Absinthe.Schema
 
   alias Blog.Resolver
-  
+
   import_types Blog.Schema.Types
 
   query do
@@ -17,18 +17,16 @@ defmodule Blog.Schema do
   end
 
   mutation do
-    field :post, :post do
+    field :create_post, :post do
       arg :title, non_null(:string)
       arg :body, non_null(:string)
-      arg :posted_at, non_null(:time)
+      arg :posted_at, :time
 
       resolve &Resolver.Post.create/2
     end
 
-    field :user, :user do
-      arg :contact, non_null(:contact_input)
-      arg :password, :string
-
+    field :create_user, :user do
+      arg :name, non_null(:string)
       resolve &Resolver.User.create/2
     end
   end
