@@ -14,13 +14,15 @@ defmodule Blog.Schema do
 
       resolve &Resolver.User.find/2
     end
+    field :users, list_of(:user) do
+      resolve &Resolver.User.all/2
+    end
   end
 
   mutation do
     field :create_post, :post do
       arg :title, non_null(:string)
       arg :body, non_null(:string)
-      arg :posted_at, :time
 
       resolve &Resolver.Post.create/2
     end

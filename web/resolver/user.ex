@@ -10,6 +10,10 @@ defmodule Blog.Resolver.User do
     end
   end
 
+  def all(_, _) do
+    {:ok, Repo.all(User) }
+  end
+
   def create(attributes, _) do
     IO.inspect attributes
     changeset = User.changeset(%User{}, attributes)

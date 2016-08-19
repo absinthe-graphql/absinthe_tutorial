@@ -18,7 +18,7 @@ defmodule Blog.Resolver.Post do
     IO.inspect attributes
     changeset = Post.changeset(%Post{}, attributes)
     case Repo.insert(changeset) do
-      {:ok, user} -> {:ok, user}
+      {:ok, post} -> {:ok, post}
       {:error, changeset} -> {:error, changeset.errors}
     end
   end

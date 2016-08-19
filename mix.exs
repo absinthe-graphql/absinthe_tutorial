@@ -33,6 +33,7 @@ defmodule Blog.Mixfile do
      {:phoenix_ecto, "~> 3.0"},
      {:absinthe_plug, "~> 1.1"},
      {:postgrex, ">= 0.0.0"},
+     {:cors_plug, ">= 0.0.0"},
      {:timex, ">= 0.0.0"},
      {:cowboy, "~> 1.0"}]
   end
