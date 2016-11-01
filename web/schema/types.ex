@@ -19,6 +19,19 @@ defmodule Blog.Schema.Types do
     field :author, :user
   end
 
+  object :customer do
+    field :id, :id
+    field :name, :string
+    field :address, :string
+    field :pets, list_of(:pet)
+  end
+
+  object :pet do
+    field :id, :id
+    field :name, :string
+    field :species, :string
+  end
+
   object :contact do
     field :type, :string
     field :value, :string
