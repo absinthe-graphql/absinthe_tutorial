@@ -3,18 +3,18 @@ defmodule Blog.Resolver.Post do
   alias Blog.Post
   alias Blog.Repo
 
-  def find(%{id: id}, _) do
+  def find(_parent, %{id: id}, _info) do
     case Blog.Repo.get(Post, id) do
       nil  -> {:error, "Post id #{id} not found"}
       user -> {:ok, user}
     end
   end
 
-  def all(_, _) do
+  def all(_parent, _args, _info) do
     {:ok, Repo.all(Post) }
   end
 
-  def create(attributes, _) do
+  def create(_parent, attributes, _info) do
     IO.inspect attributes
     changeset = Post.changeset(%Post{}, attributes)
     case Repo.insert(changeset) do
