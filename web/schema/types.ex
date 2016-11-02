@@ -19,23 +19,36 @@ defmodule Blog.Schema.Types do
     field :author, :user
   end
 
+  object :customer do
+    field :id, :id
+    field :name, :string
+    field :address, :string
+    field :pets, list_of(:pet)
+  end
+
+  object :pet do
+    field :id, :id
+    field :name, :string
+    field :species, :string
+  end
+
   object :contact do
-    field :type, :contact_type
+    field :type, :string
     field :value, :string
   end
 
   scalar :time do
     description "ISOz time",
-    parse &Timex.DateFormat.parse(&1, "{ISOz}")
-    serialize &Timex.DateFormat.format!(&1, "{ISOz}")
+    parse &Timex.parse(&1, "{ISOz}")
+    serialize &Timex.format!(&1, "{ISOz}")
   end
 
   input_object :contact_input do
-    field :type, non_null(:contact_type)
+    field :type, non_null(:string)
     field :value, non_null(:string)
   end
 
-  enum :contact_type do
-    values ~w(phone email)a
-  end
+  # enum :contact_type do
+  #   values ~w(phone email)a
+  # end
 end

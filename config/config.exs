@@ -5,6 +5,9 @@
 # is restricted to this project.
 use Mix.Config
 
+config :blog,
+  ecto_repos: [Blog.Repo]
+  
 # Configures the endpoint
 config :blog, Blog.Endpoint,
   url: [host: "localhost"],
