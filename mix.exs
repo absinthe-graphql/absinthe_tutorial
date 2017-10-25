@@ -1,7 +1,7 @@
 defmodule Blog.Mixfile do
   use Mix.Project
 
-  def project do
+  def project() do
     [app: :blog,
      version: "0.0.1",
      elixir: "~> 1.2",
@@ -15,7 +15,7 @@ defmodule Blog.Mixfile do
   # Configuration for the OTP application.
   #
   # Type `mix help compile.app` for more information.
-  def application do
+  def application() do
     [mod: {Blog, []},
      applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger,
                     :phoenix_ecto, :postgrex, :absinthe_plug]]
@@ -28,7 +28,7 @@ defmodule Blog.Mixfile do
   # Specifies your project dependencies.
   #
   # Type `mix help deps` for examples and options.
-  defp deps do
+  defp deps() do
     [{:phoenix, "~> 1.2.1"},
      {:phoenix_pubsub, "~> 1.0"},
      {:phoenix_ecto, "~> 3.0"},
