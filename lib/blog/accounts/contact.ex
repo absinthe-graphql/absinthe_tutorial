@@ -4,9 +4,6 @@ defmodule Blog.Accounts.Contact do
 
   alias Blog.Accounts
 
-  import EctoEnum, only: [defenum: 3]
-  defenum TypeEnum, :contact_type, [:email, :phone]
-
   schema "contacts" do
     field :type, :string
     field :value, :string
