@@ -10,7 +10,9 @@ defmodule BlogWeb.Router do
     pipe_through :api
 
     forward "/graphiql", Absinthe.Plug.GraphiQL,
-      schema: BlogWeb.Schema
+      schema: BlogWeb.Schema,
+      json_codec: BlogWeb.JSON,
+      pipeline: {__MODULE__, :absinthe_pipeline}
 
     forward "/", Absinthe.Plug,
       schema: BlogWeb.Schema,
