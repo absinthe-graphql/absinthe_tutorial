@@ -8,6 +8,16 @@ defmodule BlogWeb.Resolvers.Accounts do
         {:ok, user}
     end
   end
+  
+  def find_user(%{author_id: author_id}, _args, _resolution) do
+    case Blog.Accounts.find_user(author_id) do
+      nil ->
+        {:error, "User ID  not found"}
+      user ->
+        {:ok, user}
+    end
+  end
+
 
   def create_user(_parent, args, %{context: %{current_user: %{admin: true}}}) do
     Blog.Accounts.create_user(args)
