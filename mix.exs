@@ -36,6 +36,7 @@ defmodule Blog.Mixfile do
       {:phoenix, "~> 1.3.0"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},
+      {:sqlite_ecto2, "~> 2.2"},
       {:ecto, "~> 2.2.6"},
       {:postgrex, ">= 0.0.0"},
       {:gettext, "~> 0.11"},
