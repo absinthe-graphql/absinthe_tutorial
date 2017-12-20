@@ -11,9 +11,7 @@ config :logger, level: :warn
 
 # Configure your database
 config :blog, Blog.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "blog_test",
+  adapter: Sqlite.Ecto2,
+  database: "test.sqlite3",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox

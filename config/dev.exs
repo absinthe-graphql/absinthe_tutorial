@@ -38,9 +38,7 @@ config :phoenix, :stacktrace_depth, 20
 
 # Configure your database
 config :blog, Blog.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "blog_dev",
+  adapter: Sqlite.Ecto2,
+  database: "dev.sqlite3",
   hostname: "localhost",
   pool_size: 10
