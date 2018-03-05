@@ -24,6 +24,7 @@ defmodule Blog.Accounts.Contact do
     contact
     |> cast(attrs, [:type, :value])
     |> validate_required([:type, :value])
+    |> unique_constraint(:value, name: :contacts_type_value_index)
   end
 
 end
