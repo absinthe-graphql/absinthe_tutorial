@@ -13,6 +13,9 @@ defmodule Blog.Accounts do
       with {:ok, contact} <- create_contact(contact_attrs),
            {:ok, user} <- do_create_user(user_attrs, contact) do
         %{user | contacts: [contact]}
+      else
+        {:error, changeset} ->
+          Repo.rollback(changeset)
       end
     end
 
@@ -21,14 +24,14 @@ defmodule Blog.Accounts do
   def create_contact(attrs) do
     attrs
     |> Accounts.Contact.changeset
-    |> Blog.Repo.insert
+    |> Repo.insert
   end
 
   defp do_create_user(attrs, contact) do
     attrs
     |> Map.put(:contact_id, contact.id)
     |> Accounts.User.changeset
-    |> Blog.Repo.insert
+    |> Repo.insert
   end
 
 end
