@@ -14,6 +14,8 @@ defmodule Blog.Application do
       supervisor(BlogWeb.Endpoint, []),
       # Start your own worker by calling: Blog.Worker.start_link(arg1, arg2, arg3)
       # worker(Blog.Worker, [arg1, arg2, arg3]),
+      # Start Subscription supervisor processes
+      supervisor(Absinthe.Subscription, [BlogWeb.Endpoint])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
