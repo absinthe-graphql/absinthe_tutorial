@@ -43,6 +43,7 @@ defmodule Blog.Mixfile do
       {:absinthe, "~> 1.4"},
       {:absinthe_plug, "~> 1.4"},
       {:absinthe_ecto, ">= 0.0.0"},
+      {:absinthe_phoenix, "~> 1.4.0"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.2"},
     ]

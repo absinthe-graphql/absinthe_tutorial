@@ -44,4 +44,12 @@ defmodule BlogWeb.Schema do
 
   end
 
+  subscription do
+    field :new_post, :post do
+      config fn _args, _info ->
+        {:ok, topic: "*"}
+      end
+    end 
+  end
+
 end
