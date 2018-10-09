@@ -33,6 +33,7 @@ defmodule Blog.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:dataloader, "~> 1.0.4"},
       {:phoenix, "~> 1.3.0"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},
@@ -40,7 +41,7 @@ defmodule Blog.Mixfile do
       {:postgrex, ">= 0.0.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:absinthe, "~> 1.4"},
+      {:absinthe, "~> 1.4.13"},
       {:absinthe_plug, "~> 1.4"},
       {:absinthe_ecto, ">= 0.0.0"},
       {:absinthe_phoenix, "~> 1.4.0"},
