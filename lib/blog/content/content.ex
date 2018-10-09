@@ -3,6 +3,13 @@ defmodule Blog.Content do
 
   alias Blog.{Repo, Content}
 
+
+  def data(), do: Dataloader.Ecto.new(Repo, query: &query/2)
+  
+  def query(queryable, params) do  
+    queryable
+  end 
+
   def list_posts(author, %{date: date}) do
     from(t in Content.Post,
       where: t.author_id == ^author.id,

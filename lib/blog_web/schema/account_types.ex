@@ -2,6 +2,8 @@ defmodule BlogWeb.Schema.AccountTypes do
   use Absinthe.Schema.Notation
 
   alias BlogWeb.Resolvers
+  alias Blog.Content
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   @desc "A user of the blog"
   object :user do
@@ -10,7 +12,7 @@ defmodule BlogWeb.Schema.AccountTypes do
     field :contacts, list_of(:contact)
     field :posts, list_of(:post) do
       arg :date, :date
-      resolve &Resolvers.Content.list_posts/3
+      resolve dataloader(Content)
     end
   end
 
