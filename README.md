@@ -1,3 +1,4 @@
+
 # Absinthe Tutorial Code
 
 This repository houses the example code for the official Absinthe tutorial
@@ -24,3 +25,6 @@ should:
 ## License
 
 See [LICENSE.md](./LICENSE.md).
+
+For an actual local tutorial guide, see TUTORIAL.txt
+
