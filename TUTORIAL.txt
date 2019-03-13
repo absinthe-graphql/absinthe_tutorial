@@ -1,0 +1,91 @@
+Welcome and congratualtions!
+
+Since you found this textfile, you have got off and landed on your feet!
+
+This short tutorial goes through a few steps just to introduce the basic concepts.
+
+First things first - the structure, location, and prerequisite.
+
+The structure you just checked out looks like this (don't panic! :-) ):
+
+.
+└── absinthe_tutorial <-- we are here - this is the location of the tutorial root directory!
+    ├── LICENSE.md
+    ├── README.md
+    ├── config
+    │   ├── config.exs
+    │   ├── dev.exs
+    │   ├── prod.exs
+    │   └── test.exs
+    ├── lib
+    │   ├── blog
+    │   │   ├── accounts
+    │   │   │   ├── accounts.ex
+    │   │   │   ├── contact.ex
+    │   │   │   └── user.ex
+    │   │   ├── application.ex
+    │   │   ├── content
+    │   │   │   ├── content.ex
+    │   │   │   └── post.ex
+    │   │   └── repo.ex
+    │   ├── blog.ex
+    │   ├── blog_web
+    │   │   ├── channels
+    │   │   │   └── user_socket.ex
+    │   │   ├── context.ex
+    │   │   ├── endpoint.ex
+    │   │   ├── gettext.ex
+    │   │   ├── resolvers
+    │   │   │   ├── accounts.ex
+    │   │   │   └── content.ex
+    │   │   ├── router.ex
+    │   │   ├── schema
+    │   │   │   ├── account_types.ex
+    │   │   │   └── content_types.ex
+    │   │   ├── schema.ex
+    │   │   └── views
+    │   │       ├── error_helpers.ex
+    │   │       └── error_view.ex
+    │   └── blog_web.ex
+    ├── mix.exs
+    ├── mix.lock
+    ├── priv
+    │   ├── gettext
+    │   │   ├── en
+    │   │   │   └── LC_MESSAGES
+    │   │   │       └── errors.po
+    │   │   └── errors.pot
+    │   └── repo
+    │       ├── migrations
+    │       │   ├── 20171024194851_create_users.exs
+    │       │   ├── 20171024194852_create_posts.exs
+    │       │   └── 20171024211706_create_contacts.exs
+    │       └── seeds.exs
+    └── test
+        ├── blog_web
+        │   └── views
+        │       └── error_view_test.exs
+        ├── support
+        │   ├── channel_case.ex
+        │   ├── conn_case.ex
+        │   └── data_case.ex
+        └── test_helper.exs
+
+In order to be able to run this tutorial, you should already have the following installed:
+Elixir - see https://elixir-lang.org or https://github.com/absinthe-graphql/absinthe
+Absinthe - see https://github.com/absinthe-graphql/absinthe
+
+----
+
+From the tutorial root directory directory, you should now run the following commands to get you going:
+
+#1
+ mix deps.get
+
+followed by
+
+#2
+ mix ecto.setup
+
+
+Enjoy! 8=)

@@ -10,10 +10,21 @@ defmodule BlogWeb.Router do
     pipe_through :api
 
     forward "/graphiql", Absinthe.Plug.GraphiQL,
-      schema: BlogWeb.Schema
+      schema: BlogWeb.Schema,
+      json_codec: BlogWeb.JSON,
+      pipeline: {__MODULE__, :absinthe_pipeline}
 
     forward "/", Absinthe.Plug,
-      schema: BlogWeb.Schema
+      schema: BlogWeb.Schema,
+      json_codec: BlogWeb.JSON,
+      pipeline: {__MODULE__, :absinthe_pipeline}
+  end
+
+  def absinthe_pipeline(config, pipeline_opts) do
+    pipeline_opts = Keyword.put(pipeline_opts, :result_phase, BlogWeb.OrdGraphQLResult)
+    config.schema_mod
+    |> Absinthe.Pipeline.for_document(pipeline_opts)
+    |> Absinthe.Pipeline.replace(Absinthe.Phase.Document.Result, BlogWeb.OrdGraphQLResult)
   end
 
 end

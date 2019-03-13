@@ -1,0 +1,94 @@
+<h1 id="our-first-query">Our First Query</h1>
+<p>The first thing our viewers want is a list of our blog posts, so that's what we're going to give them. Here's the query we want to support:</p>
+<pre class="graphql"><code>{
+  posts {
+    title
+    body
+  }
+}</code></pre>
+<p>To do this we're going to need a schema. Let's create some basic types for our schema, starting with a <code>:post</code>. GraphQL has several fundamental types on top of which all of our types will be built. The <a href="Absinthe.Type.Object.html">Object</a> type is the right one to use when representing a set of key value pairs.</p>
+<p>Since our <code>Post</code> Ecto schema lives in the <code>Blog.Content</code> Phoenix context, we'll define its GraphQL counterpart type, <code>:post</code>, in a matching <code>BlogWeb.Schema.ContentTypes</code> module:</p>
+<p>In <code>blog_web/schema/content_types.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema.ContentTypes do
+  use Absinthe.Schema.Notation
+
+  object :post do
+    field :id, :id
+    field :title, :string
+    field :body, :string
+  end
+end</code></pre>
+<blockquote>
+<p>The GraphQL specification requires that type names be unique, TitleCased words. Absinthe does this automatically for us, extrapolating from our type identifier (in this case <code>:post</code> gives us <code>&quot;Post&quot;</code>. If really needed, we could provide a custom type name as a <code>:name</code> option to the <code>object</code> macro.</p>
+</blockquote>
+<p>If you're curious what the type <code>:id</code> is used by the <code>:id</code> field, see the <a href="https://facebook.github.io/graphql/#sec-ID">GraphQL spec</a>. It's an opaque value, and in our case is just the regular Ecto id, but serialized as a string.</p>
+<p>With our type completed we can now write a basic schema that will let us query a set of posts.</p>
+<p>In <code>blog_web/schema.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema do
+  use Absinthe.Schema
+  import_types BlogWeb.Schema.ContentTypes
+
+  alias BlogWeb.Resolvers
+
+  query do
+
+    @desc &quot;Get all posts&quot;
+    field :posts, list_of(:post) do
+      resolve &amp;Resolvers.Content.list_posts/3
+    end
+
+  end
+
+end</code></pre>
+<blockquote>
+<p>For more information on the macros available to build a schema, see their definitions in <a href="Absinthe.Schema.html">Absinthe.Schema</a> and <a href="Absinthe.Schema.Notation.html">Absinthe.Schema.Notation</a>.</p>
+</blockquote>
+<p>This uses a resolver module we've created (again, to match the Phoenix context naming) at <code>blog_web/resolvers/content.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Resolvers.Content do
+
+  def list_posts(_parent, _args, _resolution) do
+    {:ok, Blog.Content.list_posts()}
+  end
+
+end</code></pre>
+<p>Queries are defined as fields inside the GraphQL object returned by our <code>query</code> function. We created a posts query that has a type <code>list_of(:post)</code> and is resolved by our <code>BlogWeb.Resolvers.Content.list_posts/3</code> function. Later we'll talk more about the resolver function parameters; for now just remember that resolver functions can take two forms:</p>
+<ul>
+<li>A function with an arity of 3 (taking a parent, arguments, and resolution struct)</li>
+<li>An alternate, short form with an arity of 2 (omitting the first parameter, the parent)</li>
+</ul>
+<p>The job of the resolver function is to return the data for the requested field. Our resolver calls out to the <code>Blog.Content</code> module, which is where all the domain logic for posts lives, invoking its <code>list_posts/0</code> function, then returns the posts in an <code>:ok</code> tuple.</p>
+<blockquote>
+<p>Resolvers can return a wide variety of results, to include errors and configuration for <a href="middleware-and-plugins.html">advanced plugins</a> that further process the data.</p>
+<p>If you're asking yourself what the implementation of the domain logic looks like, and exactly how the related Ecto schemas are built, read through the code in the <a href="http://github.com/absinthe-graphql/absinthe_tutorial">absinthe_tutorial</a> repository. The tutorial content here is intentionally focused on the Absinthe-specific code.</p>
+</blockquote>
+<p>Now that we have the functional pieces in place, let's configure our Phoenix router to wire this into HTTP:</p>
+<p>In <code>blog_web/router.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Router do
+  use BlogWeb, :router
+
+  pipeline :api do
+    plug :accepts, [&quot;json&quot;]
+  end
+
+  scope &quot;/api&quot; do
+    pipe_through :api
+
+    forward &quot;/graphiql&quot;, Absinthe.Plug.GraphiQL,
+      schema: BlogWeb.Schema
+
+    forward &quot;/&quot;, Absinthe.Plug,
+      schema: BlogWeb.Schema
+
+  end
+
+end</code></pre>
+<p>In addition to our API, we've wired in a handy GraphiQL user interface to play with it. Absinthe integrates both the classic <a href="https://github.com/graphql/graphiql">GraphiQL</a> and more advanced <a href="https://github.com/OlegIlyenko/graphiql-workspace">GraphiQL Workspace</a> interfaces as part of the <a href="https://hex.pm/packages/absinthe_plug">absinthe_plug</a> package.</p>
+<p>Now let's check to make sure everything is working. Start the server:</p>
+<pre class="shell"><code>$ mix phx.server</code></pre>
+<p>Absinthe does a number of sanity checks during compilation, so if you misspell a type or make another schema-related gaffe, you'll be notified.</p>
+<p>Once it's up-and-running, take a look at <a href="http://localhost:4000/api/graphiql">http://localhost:4000/api/graphiql</a>:</p>
+<p><img style="box-shadow: 0 0 6px #ccc;" src="assets/tutorial/graphiql_blank.png" alt=""/></p>
+<p>Make sure that the <code>URL</code> is pointing to the correct place and press the play button. If everything goes according to plan, you should see something like this:</p>
+<p><img style="box-shadow: 0 0 6px #ccc;" src="assets/tutorial/graphiql.png" alt=""/></p>
+<h2 id="next-step">Next Step</h2>
+<p>Now let's look at how we can <a href="query-arguments.html">add arguments to our queries</a>.</p>

@@ -45,6 +45,7 @@ defmodule Blog.Mixfile do
       {:absinthe_ecto, ">= 0.0.0"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.2"},
+      {:jiffy, ">= 0.0.0"},
     ]
   end
 

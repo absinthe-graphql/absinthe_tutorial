@@ -1,0 +1,41 @@
+<h1 id="mutations">Mutations</h1>
+<p>A blog is no good without new content. We want to support a mutation to create a blog post:</p>
+<pre class="graphql"><code>mutation CreatePost {
+  createPost(title: &quot;Second&quot;, body: &quot;We&#39;re off to a great start!&quot;) {
+    id
+  }
+}</code></pre>
+<p>Now we just need to define a <code>mutation</code> portion of our schema and a <code>:create_post</code> field:</p>
+<p>In <code>blog_web/schema.ex</code>:</p>
+<pre class="elixir"><code>mutation do
+
+  @desc &quot;Create a post&quot;
+  field :create_post, type: :post do
+    arg :title, non_null(:string)
+    arg :body, non_null(:string)
+    arg :published_at, :naive_datetime
+
+    resolve &amp;Resolvers.Content.create_post/3
+  end
+
+end</code></pre>
+<p>The resolver in this case is responsible for making any changes and returning an <code>{:ok, post}</code> tuple matching the <code>:post</code> type we defined earlier:</p>
+<p>In our <code>blog_web/resolvers/content.ex</code> module, we'll add the <code>create_post/3</code> resolver function:</p>
+<pre class="elixir"><code>def create_post(_parent, args, %{context: %{current_user: user}}) do
+  Blog.Content.create_post(user, args)
+end
+def create_post(_parent, _args, _resolution) do
+  {:error, &quot;Access denied&quot;}
+end</code></pre>
+<blockquote>
+<p>Obviously things can go wrong in a mutation. To learn more about the types of error results that Absinthe supports, read <a href="errors.html">the guide</a>.</p>
+</blockquote>
+<h2 id="authorization">Authorization</h2>
+<p>This resolver adds a new concept: authorization. The resolution struct (that is, an <a href="Absinthe.Resolution.html"><code>Absinthe.Resolution</code></a>) passed to the resolver as the third argument carries along with it the Absinthe context, a data structure that serves as the integration point with external mechanisms---like a Plug that authenticates the current user. You can learn more about how the context can be used in the <a href="context-and-authentication.html">Context and Authentication</a> guide.</p>
+<p>Going back to the resolver code:</p>
+<ul>
+<li>If the match for a current user is successful, the underlying <code>Blog.Content.create_post/2</code> function is invoked. It will return a tuple suitable for return. (To read the Ecto-related nitty gritty, check out the <a href="https://github.com/absinthe-graphql/absinthe_tutorial">absinthe_tutorial</a> repository.)</li>
+<li>If the match for a current user isn't successful, the fall-through match will return an error indicating that a post can't be created.</li>
+</ul>
+<h2 id="next-step">Next Step</h2>
+<p>Now let's take a look at <a href="complex-arguments.html">more complex arguments</a>.</p>
