@@ -1,0 +1,85 @@
+<h1 id="dataloader">Dataloader</h1>
+<p>Maybe you like good performance, or you realized that you are filling your objects with fields that need resolvers like</p>
+<pre class="elixir"><code>@desc &quot;A user of the blog&quot;
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :contacts, list_of(:contact)
+    field :posts, list_of(:post) do
+      arg :date, :date
+      resolve &amp;Resolvers.Content.list_posts/3
+    end
+  end</code></pre>
+<p>This is going to get tedious and error-prone very quickly what if we could support a query that supports associations like</p>
+<pre class="elixir"><code>@desc &quot;A user of the blog&quot;
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :contacts, list_of(:contact)
+    field :posts, list_of(:post) do
+       arg :date, :date
+       resolve: dataloader(Content))
+   end 
+  end</code></pre>
+<p>This way associations are all handled in the context <a href="https://github.com/absinthe-graphql/absinthe/issues/443#issuecomment-405929499">business logic aware</a> conditions, to support this is actually surprisingly simple.</p>
+<p>Since we had already setup users to load associated posts we can change that to use dataloader to illustrate how much simpler this gets.</p>
+<p>Let's start by adding <code>dataloader</code> as a dependency in <code>mix.exs</code>:</p>
+<pre class="elixir"><code>defp deps do
+  [
+    {:dataloader, &quot;~&gt; 1.0.4&quot;}
+    &lt;&lt; other deps &gt;&gt;
+  ]</code></pre>
+<p>Next, we need to set up dataloader in our context which allows us to load associations using rules:</p>
+<p>In <code>lib/blog/content.ex</code>:</p>
+<pre class="elixir"><code>  def data(), do: Dataloader.Ecto.new(Repo, query: &amp;query/2)
+  
+  def query(queryable, params) do
+    
+    queryable
+  end </code></pre>
+<p>This sets up a loader that can use pattern matching to load different rules for different queryables, also note this function is passed in the context as the second parameter and that can be used for further filtering.</p>
+<p>Then let's add a configuration to our schema (in <code>lib/blog_web/schema.ex</code>) so that we can allow Absinthe to use Dataloader:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema do
+  use Absinthe.Schema
+  
+  def context(ctx) do
+     loader =
+       Dataloader.new()
+       |&gt; Dataloader.add_source(Content, Content.data())
+
+    Map.put(ctx, :loader, loader)
+  end
+
+  def plugins do
+    [Absinthe.Middleware.Dataloader | Absinthe.Plugin.defaults()]
+  end
+
+  # &lt;&lt; rest of the file&gt;&gt;</code></pre>
+<p>The loader is all set up, now let's modify the resolver to use Dataloader. In <code>lib/blog_web/schema/account_types.ex</code> modify the user object to look as follows:</p>
+<pre class="elixir"><code>@desc &quot;A user of the blog&quot;
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :contacts, list_of(:contact)
+    field :posts, list_of(:post) do
+       arg :date, :date
+       resolve: dataloader(Content))
+   end 
+  end</code></pre>
+<p>That's it! You are now loading associations using <a href="https://github.com/absinthe-graphql/dataloader">Dataloader</a></p>
+<h2 id="more-examples">More Examples</h2>
+<p>While the above examples are simple and straightforward we can use other strategies with loading associations consider the following:</p>
+<pre class="elixir"><code>object :user do
+  field :posts, list_of(:post), resolve: fn user, args, %{context: %{loader: loader}} -&gt;
+    loader
+    |&gt; Dataloader.load(Blog, :posts, user)
+    |&gt; on_load(fn loader -&gt;
+      {:ok, Dataloader.get(loader, Blog, :posts, user)}
+    end)
+  end</code></pre>
+<p>In this example, we are passing some args go the query in the context where our source lives. For example, this function now receives <code>args</code> as <code>params</code> meaning we can do now do fun stuff like apply rules to our queries like the following:</p>
+<pre class="elixir"><code>def query(query, %{has_admin_rights: true}), do: query
+
+def query(query, _), do: from(a in query, select_merge: %{street_number: nil})</code></pre>
+<p>This example is from the awesome <a href="https://github.com/emcasa/backend/blob/master/apps/re/lib/addresses/addresses.ex">EmCasa Application</a> :) you can see how the <a href="https://github.com/rhnonose">author</a> is only loading street numbers if a user has admin rights and the same used in a <a href="https://github.com/emcasa/backend/blob/9a0f86c11499be6e1a07d0b0acf1785521eedf7f/apps/re_web/lib/graphql/resolvers/addresses.ex#L11">resolver</a>.</p>
+<p>Check out the <a href="https://hexdocs.pm/dataloader/">docs</a> for more non-trivial ways of using Dataloader.</p>

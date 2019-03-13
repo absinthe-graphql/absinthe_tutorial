@@ -1,0 +1,159 @@
+<h1 id="query-arguments">Query Arguments</h1>
+<p>Our GraphQL API would be pretty boring (and useless) if clients couldn't retrieve filtered data.</p>
+<p>Let's assume that our API needs to add the ability to look-up users by their ID and get the posts that they've authored. Here's what a basic query to do that might look like:</p>
+<pre class="graphql"><code>{
+  user(id: &quot;1&quot;) {
+    name
+    posts {
+      id
+      title
+    }
+  }
+}</code></pre>
+<p>The query includes a field argument, <code>id</code>, contained within the parentheses after the <code>user</code> field name. To make this all work, we need to modify our schema a bit.</p>
+<h2 id="defining-arguments">Defining Arguments</h2>
+<p>First, let's create a <code>:user</code> type and define its relationship to <code>:post</code> while we're at it. We'll create a new module for the account-related types and put it there; in <code>blog_web/schema/account_types.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema.AccountTypes do
+  use Absinthe.Schema.Notation
+
+  @desc &quot;A user of the blog&quot;
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :email, :string
+    field :posts, list_of(:post)
+  end
+
+end</code></pre>
+<p>The <code>:posts</code> field points to a list of <code>:post</code> results. (This matches up with what we have on the Ecto side, where <code>Blog.Accounts.User</code> defines a <code>has_many</code> association with <code>Blog.Content.Post</code>.)</p>
+<p>We've already defined the <code>:post</code> type, but let's go ahead and add an <code>:author</code> field that points back to our <code>:user</code> type. In <code>blog_web/schema/content_types.ex</code>:</p>
+<pre class="elixir"><code>object :post do
+
+  # post fields we defined earlier...
+
+  field :author, :user
+
+end</code></pre>
+<p>Now let's add the <code>:user</code> field to our query root object in our schema, defining a mandatory <code>:id</code> argument and using the <code>Resolvers.Accounts.find_user/3</code> resolver function. We also need to make sure we import the types from <code>BlogWeb.Schema.AccountTypes</code> so that <code>:user</code> is available.</p>
+<p>In <code>blog_web/schema.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema do
+  use Absinthe.Schema
+
+  import_types Absinthe.Type.Custom
+
+  # Add this `import_types`:
+  import_types BlogWeb.Schema.AccountTypes
+
+  import_types BlogWeb.Schema.ContentTypes
+
+  alias BlogWeb.Resolvers
+
+  query do
+
+    @desc &quot;Get all posts&quot;
+    field :posts, list_of(:post) do
+      resolve &amp;Resolvers.Content.list_posts/3
+    end
+
+    # Add this field:
+    @desc &quot;Get a user of the blog&quot;
+    field :user, :user do
+      arg :id, non_null(:id)
+      resolve &amp;Resolvers.Accounts.find_user/3
+    end
+
+  end
+
+end</code></pre>
+<p>Now lets use the argument in our resolver. In <code>blog_web/resolvers/accounts.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Resolvers.Accounts do
+
+  def find_user(_parent, %{id: id}, _resolution) do
+    case Blog.Accounts.find_user(id) do
+      nil -&gt;
+        {:error, &quot;User ID #{id} not found&quot;}
+      user -&gt;
+        {:ok, user}
+    end
+  end
+
+end</code></pre>
+<p>Our schema marks the <code>:id</code> argument as <code>non_null</code>, so we can be certain we will receive it. If <code>:id</code> is left out of the query, Absinthe will return an informative error to the user, and the resolve function will not be called.</p>
+<blockquote>
+<p>If you have experience writing Phoenix controller actions, you might wonder why we can match incoming arguments with atoms instead of having to use strings.</p>
+<p>The answer is simple: you've defined the arguments in the schema using atom identifiers, so Absinthe knows what arguments will be used ahead of time, and will coerce as appropriate---culling any extraneous arguments given to a query. This means that all arguments can be supplied to the resolve functions with atom keys.</p>
+</blockquote>
+<p>Finally you'll see that we can handle the possibility that the query, while valid from GraphQL's perspective, may still ask for a user that does not exist. We've decided to return an error in that case.</p>
+<blockquote>
+<p>There's a valid argument for just returning <code>{:ok, nil}</code> when a record can't be found. Whether the absence of data constitutes an error is a decision you get to make.</p>
+</blockquote>
+<h2 id="arguments-and-non-root-fields">Arguments and Non-Root Fields</h2>
+<p>Let's assume we want to query all posts from a user published within a given time range. First, let's add a new field to our <code>:post</code> object type, <code>:published_at</code>.</p>
+<p>The GraphQL specification doesn't define any official date or time types, but it does support custom scalar types (you can read more about them in the <a href="custom-scalars.html">related guide</a>, and Absinthe ships with several built-in scalar types. We'll use <code>:naive_datetime</code> (which doesn't include timezone information) here.</p>
+<p>Edit <code>blog_web/schema/content_types.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema.ContentTypes do
+  use Absinthe.Schema.Notation
+
+  @desc &quot;A blog post&quot;
+  object :post do
+    field :id, :id
+    field :title, :string
+    field :body, :string
+    field :author, :user
+    # Add this:
+    field :published_at, :naive_datetime
+  end
+end</code></pre>
+<p>To make the <code>:naive_datetime</code> type available, add an <code>import_types</code> line to your <code>blog_web/schema.ex</code>:</p>
+<pre class="elixir"><code>import_types Absinthe.Type.Custom</code></pre>
+<blockquote>
+<p>For more information about how types are imported, read <a href="importing-types.html">the guide on the topic</a>.</p>
+<p>For now, just remember that <code>import_types</code> should <em>only</em> be used in top-level schema module. (Think of it like a manifest.)</p>
+</blockquote>
+<p>Here's the query we'd like to be able to use, getting the posts for a user on a given date:</p>
+<pre class="graphql"><code>{
+  user(id: &quot;1&quot;) {
+    name
+    posts(date: &quot;2017-01-01&quot;) {
+      title
+      body
+      publishedAt
+    }
+  }
+}</code></pre>
+<p>To use the passed date, we need to update our <code>:user</code> object type and make some changes to its <code>:posts</code> field; it needs to support a <code>:date</code> argument and use a custom resolver. In <code>blog_web/schema/account_types.ex</code>:</p>
+<pre class="elixir"><code>defmodule BlogWeb.Schema.AccountTypes do
+  use Absinthe.Schema.Notation
+
+  alias BlogWeb.Resolvers
+
+  object :user do
+    field :id, :id
+    field :name, :string
+    field :email, :string
+    # Add the block here:
+    field :posts, list_of(:post) do
+      arg :date, :date
+      resolve &amp;Resolvers.Content.list_posts/3
+    end
+  end
+
+end</code></pre>
+<p>For the resolver, we've added another function head to <code>Resolvers.Content.list_posts/3</code>. This illustrates how you can use the first argument to a resolver to match the parent object of a field. In this case, that parent object would be a <code>Blog.Accounts.User</code> Ecto schema:</p>
+<pre class="elixir"><code># Add this:
+def list_posts(%Blog.Accounts.User{} = author, args, _resolution) do
+  {:ok, Blog.Content.list_posts(author, args)}
+end
+# Before this:
+def list_posts(_parent, _args, _resolution) do
+  {:ok, Blog.Content.list_posts()}
+end</code></pre>
+<p>Here we pass on the user and arguments to the domain logic function, <code>Blog.Content.list_posts/3</code>, which will find the posts for the user and date (if it's provided; the <code>:date</code> argument is optional). The resolver, just as when it's used for the top level query <code>:posts</code>, returns the posts in an <code>:ok</code> tuple.</p>
+<blockquote>
+<p>Check out the full implementation of logic for <code>Blog.Content.list_posts/3</code>--and some simple seed data--in the <a href="https://github.com/absinthe-graphql/absinthe_tutorial">absinthe_tutorial</a> repository.</p>
+</blockquote>
+<p>If you've done everything correctly (and have some data handy), if you start up your server with <code>mix phx.server</code> and head over to <a href="http://localhost:4000/api/graphiql">http://localhost:4000/api/graphiql</a>, you should be able to play with the query.</p>
+<p>It should look something like this:</p>
+<p><img style="box-shadow: 0 0 6px #ccc;" src="assets/tutorial/graphiql_user_posts.png" alt=""/></p>
+<h2 id="next-step">Next Step</h2>
+<p>Next up, we look at how to modify our data using <a href="mutations.html">mutations</a>.</p>
