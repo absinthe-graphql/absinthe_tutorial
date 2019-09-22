@@ -1,7 +1,9 @@
 defmodule BlogWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :blog
 
-  socket "/socket", BlogWeb.UserSocket
+  socket "/socket", BlogWeb.UserSocket,
+    websocket: []
+    # longpoll: []
 
   # Serve at "/" the static files from "priv/static" directory.
   #
