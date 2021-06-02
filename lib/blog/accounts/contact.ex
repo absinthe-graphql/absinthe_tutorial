@@ -25,5 +25,4 @@ defmodule Blog.Accounts.Contact do
     |> cast(attrs, [:type, :value])
     |> validate_required([:type, :value])
   end
-
 end

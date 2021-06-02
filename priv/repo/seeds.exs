@@ -15,10 +15,14 @@ alias Blog.{Accounts, Content}
 user =
   %Accounts.User{}
   |> Accounts.User.changeset(%{name: "Test", password: "test"})
-  |> Blog.Repo.insert!
+  |> Blog.Repo.insert!()
 
 user
 |> Ecto.build_assoc(:contacts, %{type: "email", value: "test@test.com"})
-|> Blog.Repo.insert!
+|> Blog.Repo.insert!()
 
-Content.create_post(user, %{title: "Test Post", body: "Lorem Ipsum", published_at: ~N[2017-10-26 10:00:00]})
+Content.create_post(user, %{
+  title: "Test Post",
+  body: "Lorem Ipsum",
+  published_at: ~N[2017-10-26 10:00:00]
+})

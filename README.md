@@ -5,8 +5,8 @@ that ships with [Absinthe's documentation](https://hexdocs.pm/absinthe).
 
 It currently targets:
 
-- Absinthe v1.4
-- Phoenix v1.3
+- Absinthe v1.6
+- Phoenix v1.5
 
 ## Contributing/Scope
 

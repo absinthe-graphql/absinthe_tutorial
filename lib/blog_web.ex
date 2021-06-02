@@ -20,29 +20,31 @@ defmodule BlogWeb do
   def controller do
     quote do
       use Phoenix.Controller, namespace: BlogWeb
+
       import Plug.Conn
-      import BlogWeb.Router.Helpers
-      import BlogWeb.Gettext
+      alias BlogWeb.Router.Helpers, as: Routes
     end
   end
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/blog_web/templates",
-                        namespace: BlogWeb
+      use Phoenix.View,
+        root: "lib/blog_web/templates",
+        namespace: BlogWeb
 
       # Import convenience functions from controllers
-      import Phoenix.Controller, only: [get_flash: 2, view_module: 1]
+      import Phoenix.Controller,
+        only: [get_flash: 1, get_flash: 2, view_module: 1, view_template: 1]
 
-      import BlogWeb.Router.Helpers
-      import BlogWeb.ErrorHelpers
-      import BlogWeb.Gettext
+      # Include shared imports and aliases for views
+      unquote(view_helpers())
     end
   end
 
   def router do
     quote do
       use Phoenix.Router
+
       import Plug.Conn
       import Phoenix.Controller
     end
@@ -51,7 +53,16 @@ defmodule BlogWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import BlogWeb.Gettext
+    end
+  end
+
+  defp view_helpers do
+    quote do
+      # Import basic rendering functionality (render, render_layout, etc)
+      import Phoenix.View
+
+      import BlogWeb.ErrorHelpers
+      alias BlogWeb.Router.Helpers, as: Routes
     end
   end
 

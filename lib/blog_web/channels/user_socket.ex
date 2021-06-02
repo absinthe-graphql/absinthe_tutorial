@@ -4,10 +4,6 @@ defmodule BlogWeb.UserSocket do
   ## Channels
   # channel "room:*", BlogWeb.RoomChannel
 
-  ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket
-  # transport :longpoll, Phoenix.Transports.LongPoll
-
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
   # verification, you can put default assigns into
@@ -19,7 +15,8 @@ defmodule BlogWeb.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
+  @impl true
+  def connect(_params, socket, _connect_info) do
     {:ok, socket}
   end
 
@@ -33,5 +30,6 @@ defmodule BlogWeb.UserSocket do
   #     BlogWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
+  @impl true
   def id(_socket), do: nil
 end
