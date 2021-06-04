@@ -10,7 +10,7 @@ defmodule BlogWeb.Context do
 
   def call(conn, _) do
     context = build_context(conn)
-    put_private(conn, :absinthe, %{context: context})
+    Absinthe.Plug.put_options(conn, context: context)
   end
 
   @doc """
@@ -33,12 +33,11 @@ defmodule BlogWeb.Context do
   # as an administrator.
   defp authorize(_token) do
     Accounts.User
-    |> first
-    |> Repo.one
+    |> first()
+    |> Repo.one()
     |> case do
-         nil -> {:error, "No users available, have you run the seeds?"}
-         user -> {:ok, Map.put(user, :admin, true)}
-       end
+      nil -> {:error, "No users available, have you run the seeds?"}
+      user -> {:ok, Map.put(user, :admin, true)}
+    end
   end
-
 end

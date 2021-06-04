@@ -9,5 +9,4 @@ defmodule BlogWeb.Schema.ContentTypes do
     field :author, :user
     field :published_at, :naive_datetime
   end
-
 end

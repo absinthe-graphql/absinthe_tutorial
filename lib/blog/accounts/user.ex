@@ -24,7 +24,8 @@ defmodule Blog.Accounts.User do
   def changeset(%__MODULE__{} = user, attrs) do
     attrs =
       attrs
-      |> Map.put(:password_hash, Comeonin.Argon2.hashpwsalt(attrs.password))
+      |> Map.put(:password_hash, Argon2.hash_pwd_salt(attrs.password))
+
     user
     |> cast(attrs, [:name, :password_hash])
     |> validate_required([:name, :password_hash])
